@@ -9,6 +9,15 @@
       "command": "node",
       "args": ["src/claude-md-management.js"],
       "description": "CLAUDE.md management plugin — read, write, append, and list CLAUDE.md files"
+    },
+    "gmail-inbox": {
+      "command": "node",
+      "args": ["src/gmail-inbox.js"],
+      "description": "Gmail inbox scanner — filters inbox to emails from real people waiting on a response",
+      "env": {
+        "GMAIL_CLIENT_ID": "",
+        "GMAIL_CLIENT_SECRET": ""
+      }
     }
   },
   "enabledPlugins": {
