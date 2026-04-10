@@ -1,0 +1,10 @@
+{
+  "name": "connect-apps-plugin",
+  "version": "1.0.0",
+  "description": "MCP plugin for managing and calling connected external apps and APIs",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
