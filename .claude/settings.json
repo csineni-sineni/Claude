@@ -5,5 +5,8 @@
       "args": ["src/index.js"],
       "description": "Superpowers plugin — shell execution, URL fetching, process listing, and system info"
     }
+  },
+  "enabledPlugins": {
+    "supabase@claude-plugins-official": true
   }
 }
