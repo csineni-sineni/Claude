@@ -53,3 +53,9 @@ npm start
 - Do not introduce new dependencies unless required.
 - If adding dependencies, use the package manager and latest stable versions.
 - Update this file when workflow or conventions change.
+
+## Custom agent profiles
+
+- `documentation-accuracy-reviewer`:
+  - Definition file: `.claude/agents/documentation-accuracy-reviewer.md`
+  - Purpose: verify docs stay accurate, complete, and in sync after API or feature changes.
