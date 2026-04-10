@@ -5,5 +5,11 @@
       "args": ["src/index.js"],
       "description": "Superpowers plugin — shell execution, URL fetching, process listing, and system info"
     }
+  },
+  "plugins": {
+    "commit-commands": {
+      "source": "claude-plugins-official",
+      "commands": ["commit", "push"]
+    }
   }
 }
