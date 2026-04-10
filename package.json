@@ -1,0 +1,27 @@
+{
+  "name": "superpowers",
+  "version": "1.0.0",
+  "description": "Claude Code superpowers plugin — enhanced tools for file ops, web, and system utilities",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "superpowers": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test src/__tests__/*.test.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "mcp",
+    "plugin"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
