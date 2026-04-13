@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "type": "module",
   "bin": {
-    "superpowers": "src/index.js"
+    "superpowers": "src/index.js",
+    "gong": "src/gong.js"
   },
   "scripts": {
     "start": "node src/index.js",
