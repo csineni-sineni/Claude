@@ -33,6 +33,7 @@
     "supabase@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "vercel@claude-plugins-official": true,
-    "data-engineering@claude-plugins-official": true
+    "data-engineering@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true
   }
 }
