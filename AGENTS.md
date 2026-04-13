@@ -53,3 +53,15 @@ npm start
 - Do not introduce new dependencies unless required.
 - If adding dependencies, use the package manager and latest stable versions.
 - Update this file when workflow or conventions change.
+
+## Cursor Cloud specific instructions
+
+Both MCP servers are **stdio-based** — they don't listen on network ports. To test them manually, pipe JSON-RPC messages via stdin:
+
+```bash
+printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}\n{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}\n' | timeout 5 node src/index.js
+```
+
+- The `src/__tests__/` directory may not contain test files yet; `npm test` exits cleanly with 0 tests in that case.
+- No external services, databases, or Docker are required.
+- There is no lint command configured — the project relies on `npm test` for validation.
