@@ -10,6 +10,8 @@ Guidance for coding agents working in this repository.
 - **Primary files:**
   - `src/index.js` — main `superpowers` MCP server
   - `src/claude-md-management.js` — `claude-md-management` MCP server
+  - `src/gong.js` — Gong Engage contacts and flow assignment MCP server
+  - `src/salesforce.js` — Salesforce Contact create and SOQL query MCP server
 
 ## Setup
 

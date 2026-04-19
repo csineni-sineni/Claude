@@ -6,7 +6,7 @@
  *   - gong_list_contacts         : list contacts with optional email filter and pagination
  *   - gong_add_contacts          : create or update (upsert) one or more contacts
  *   - gong_list_flows            : list available Engage prospecting flows
- *   - gong_add_prospects_to_flow : add contacts as prospects to a specific flow
+ *   - gong_add_prospects_to_flow : assign CRM prospects to an Engage flow (POST /v2/flows/prospects/assign)
  *
  * Authentication: set GONG_ACCESS_KEY and GONG_ACCESS_KEY_SECRET environment variables.
  */
@@ -17,6 +17,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { pathToFileURL } from "url";
+import path from "path";
 
 const GONG_BASE_URL = "https://api.gong.io";
 
@@ -125,33 +127,42 @@ const TOOLS = [
   {
     name: "gong_add_prospects_to_flow",
     description:
-      "Enroll one or more prospects (contacts) into a Gong Engage prospecting flow by flow ID.",
+      "Assign Salesforce (or other CRM) prospects to a Gong Engage flow by CRM record ID. " +
+      "Requires the Gong user's email as flow instance owner (handles flow to-dos). Up to 100 CRM IDs per request. " +
+      "Use Salesforce Contact Id values from salesforce_create_contacts or salesforce_query after contacts exist in CRM and sync to Gong.",
     inputSchema: {
       type: "object",
       properties: {
         flowId: {
           type: "string",
           description:
-            "The ID of the Gong Engage flow to add prospects to. Use gong_list_flows to find flow IDs.",
+            "The Gong Engage flow ID. Use gong_list_flows to list available flows.",
         },
-        prospects: {
+        crmProspectsIds: {
           type: "array",
-          description: "Array of prospect objects to enroll in the flow.",
-          items: {
-            type: "object",
-            properties: {
-              emailAddress: {
-                type: "string",
-                description: "Prospect's email address (required).",
-              },
-              firstName: { type: "string", description: "Prospect's first name." },
-              lastName: { type: "string", description: "Prospect's last name." },
-            },
-            required: ["emailAddress"],
-          },
+          description:
+            "CRM prospect IDs (e.g. Salesforce Contact Id like 003xx00000xxxx). Maximum 100 per request.",
+          items: { type: "string" },
+          minItems: 1,
+          maxItems: 100,
+        },
+        flowInstanceOwnerEmail: {
+          type: "string",
+          description:
+            "Email of the Gong user who owns the flow instance (assigned to flow to-dos).",
+        },
+        overrides: {
+          type: "object",
+          description:
+            "Optional Engage overrides: steps (subject/body per step number), flowInstanceVariables, coolOffOverride.",
+          additionalProperties: true,
+        },
+        flowInstanceDescription: {
+          type: "string",
+          description: "Optional flow instance description (Beta in Gong API).",
         },
       },
-      required: ["flowId", "prospects"],
+      required: ["flowId", "crmProspectsIds", "flowInstanceOwnerEmail"],
     },
   },
 ];
@@ -197,23 +208,49 @@ async function handleGongListFlows() {
   return { count: flows.length, flows };
 }
 
-async function handleGongAddProspectsToFlow({ flowId, prospects }) {
+export async function handleGongAddProspectsToFlow({
+  flowId,
+  crmProspectsIds,
+  flowInstanceOwnerEmail,
+  overrides,
+  flowInstanceDescription,
+}) {
   if (!flowId || typeof flowId !== "string") {
     throw new Error("'flowId' is required and must be a non-empty string.");
   }
-  if (!Array.isArray(prospects) || prospects.length === 0) {
-    throw new Error("'prospects' must be a non-empty array.");
+  if (!flowInstanceOwnerEmail || typeof flowInstanceOwnerEmail !== "string") {
+    throw new Error(
+      "'flowInstanceOwnerEmail' is required and must be a non-empty string."
+    );
   }
-  for (const p of prospects) {
-    if (!p.emailAddress || typeof p.emailAddress !== "string") {
-      throw new Error("Each prospect must have a non-empty 'emailAddress' string.");
+  if (!Array.isArray(crmProspectsIds) || crmProspectsIds.length === 0) {
+    throw new Error("'crmProspectsIds' must be a non-empty array.");
+  }
+  if (crmProspectsIds.length > 100) {
+    throw new Error("'crmProspectsIds' cannot exceed 100 IDs per request.");
+  }
+  for (const id of crmProspectsIds) {
+    if (!id || typeof id !== "string") {
+      throw new Error("Each CRM prospect ID must be a non-empty string.");
     }
   }
-  const data = await gongFetch(`/v2/flows/${flowId}/prospects`, {
+
+  const body = {
+    flowId,
+    crmProspectsIds,
+    flowInstanceOwnerEmail,
+  };
+  if (overrides !== undefined) {
+    body.overrides = overrides;
+  }
+  if (flowInstanceDescription !== undefined) {
+    body.flowInstanceDescription = flowInstanceDescription;
+  }
+
+  return gongFetch("/v2/flows/prospects/assign", {
     method: "POST",
-    body: { prospects },
+    body,
   });
-  return data;
 }
 
 // ── Server setup ───────────────────────────────────────────────────────────────
@@ -251,5 +288,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   };
 });
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
+const isDirectRun =
+  Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+
+if (isDirectRun) {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}

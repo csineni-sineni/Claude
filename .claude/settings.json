@@ -27,6 +27,15 @@
         "GONG_ACCESS_KEY": "",
         "GONG_ACCESS_KEY_SECRET": ""
       }
+    },
+    "salesforce": {
+      "command": "node",
+      "args": ["src/salesforce.js"],
+      "description": "Salesforce integration — create Contacts and run SOQL queries",
+      "env": {
+        "SALESFORCE_INSTANCE_URL": "",
+        "SALESFORCE_ACCESS_TOKEN": ""
+      }
     }
   },
   "enabledPlugins": {

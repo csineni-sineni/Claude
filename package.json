@@ -6,7 +6,8 @@
   "type": "module",
   "bin": {
     "superpowers": "src/index.js",
-    "gong": "src/gong.js"
+    "gong": "src/gong.js",
+    "salesforce": "src/salesforce.js"
   },
   "scripts": {
     "start": "node src/index.js",
