@@ -45,6 +45,6 @@
     "data-engineering@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "asana@claude-plugins-official": true
+    "hookify@claude-plugins-official": true
   }
 }
