@@ -10,6 +10,8 @@ Guidance for coding agents working in this repository.
 - **Primary files:**
   - `src/index.js` — main `superpowers` MCP server
   - `src/claude-md-management.js` — `claude-md-management` MCP server
+  - `src/gong.js` — Gong Engage contacts and flow assignment MCP server
+  - `src/salesforce.js` — Salesforce Contact create and SOQL query MCP server
 
 ## Setup
 
@@ -54,8 +56,12 @@ npm start
 - If adding dependencies, use the package manager and latest stable versions.
 - Update this file when workflow or conventions change.
 
-## Custom agent profiles
+## Cursor Cloud specific instructions
 
-- `documentation-accuracy-reviewer`:
-  - Definition file: `.claude/agents/documentation-accuracy-reviewer.md`
-  - Purpose: verify docs stay accurate, complete, and in sync after API or feature changes.
+- **No external services required.** Both MCP servers (`src/index.js`, `src/claude-md-management.js`) are self-contained stdio processes — no databases, Docker, or network services to start.
+- **Testing MCP servers interactively:** Because these are stdio-based MCP servers (not HTTP), you test them by piping JSON-RPC messages to stdin. The sequence is: send `initialize` → `notifications/initialized` → `tools/list` or `tools/call`. Example:
+  ```bash
+  printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized"}\n{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n' | timeout 5 node src/index.js
+  ```
+- **No test files exist yet.** `npm test` runs successfully (0 tests, 0 failures) because the `src/__tests__/` directory has no `.test.js` files. The test runner harness works — just no tests to execute.
+- **Lint:** No linter is configured in this project (no ESLint, Prettier, etc.). `npm test` is the primary verification command.

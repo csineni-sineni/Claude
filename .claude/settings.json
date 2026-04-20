@@ -9,9 +9,41 @@
       "command": "node",
       "args": ["src/claude-md-management.js"],
       "description": "CLAUDE.md management plugin — read, write, append, and list CLAUDE.md files"
+    },
+    "gmail-inbox": {
+      "command": "node",
+      "args": ["src/gmail-inbox.js"],
+      "description": "Gmail inbox scanner — filters inbox to emails from real people waiting on a response",
+      "env": {
+        "GMAIL_CLIENT_ID": "",
+        "GMAIL_CLIENT_SECRET": ""
+      }
+    },
+    "gong": {
+      "command": "node",
+      "args": ["src/gong.js"],
+      "description": "Gong integration — manage contacts and Engage prospecting flows",
+      "env": {
+        "GONG_ACCESS_KEY": "",
+        "GONG_ACCESS_KEY_SECRET": ""
+      }
+    },
+    "salesforce": {
+      "command": "node",
+      "args": ["src/salesforce.js"],
+      "description": "Salesforce integration — create Contacts and run SOQL queries",
+      "env": {
+        "SALESFORCE_INSTANCE_URL": "",
+        "SALESFORCE_ACCESS_TOKEN": ""
+      }
     }
   },
   "enabledPlugins": {
-    "supabase@claude-plugins-official": true
+    "supabase@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "data-engineering@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true
   }
 }
