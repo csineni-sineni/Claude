@@ -55,3 +55,13 @@ npm start
 - Do not introduce new dependencies unless required.
 - If adding dependencies, use the package manager and latest stable versions.
 - Update this file when workflow or conventions change.
+
+## Cursor Cloud specific instructions
+
+- **No external services required.** Both MCP servers (`src/index.js`, `src/claude-md-management.js`) are self-contained stdio processes — no databases, Docker, or network services to start.
+- **Testing MCP servers interactively:** Because these are stdio-based MCP servers (not HTTP), you test them by piping JSON-RPC messages to stdin. The sequence is: send `initialize` → `notifications/initialized` → `tools/list` or `tools/call`. Example:
+  ```bash
+  printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized"}\n{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n' | timeout 5 node src/index.js
+  ```
+- **No test files exist yet.** `npm test` runs successfully (0 tests, 0 failures) because the `src/__tests__/` directory has no `.test.js` files. The test runner harness works — just no tests to execute.
+- **Lint:** No linter is configured in this project (no ESLint, Prettier, etc.). `npm test` is the primary verification command.
