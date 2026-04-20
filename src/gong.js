@@ -2,7 +2,9 @@
 /**
  * gong — Claude Code MCP plugin
  *
- * Provides tools to interact with the Gong API for contacts and Engage prospecting flows:
+ * Provides tools to interact with the Gong API for calls, contacts, and Engage prospecting flows:
+ *   - gong_list_calls            : list calls with optional date/attendee filters and pagination
+ *   - gong_get_transcripts       : retrieve full transcripts for one or more call IDs
  *   - gong_list_contacts         : list contacts with optional email filter and pagination
  *   - gong_add_contacts          : create or update (upsert) one or more contacts
  *   - gong_list_flows            : list available Engage prospecting flows
@@ -64,6 +66,52 @@ async function gongFetch(path, { method = "GET", body } = {}) {
 // ── Tool definitions ───────────────────────────────────────────────────────────
 
 const TOOLS = [
+  {
+    name: "gong_list_calls",
+    description:
+      "List Gong calls with optional filters for date range, attendees, or workspace. Returns call metadata including IDs needed for gong_get_transcripts.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        fromDateTime: {
+          type: "string",
+          description: "ISO 8601 start date-time filter (e.g. 2026-01-01T00:00:00Z).",
+        },
+        toDateTime: {
+          type: "string",
+          description: "ISO 8601 end date-time filter (e.g. 2026-12-31T23:59:59Z).",
+        },
+        attendeeEmailAddresses: {
+          type: "array",
+          items: { type: "string" },
+          description: "Filter calls where at least one of these emails participated.",
+        },
+        cursor: {
+          type: "string",
+          description: "Pagination cursor from a previous response.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "gong_get_transcripts",
+    description:
+      "Retrieve full transcripts for one or more Gong call IDs. Use gong_list_calls first to obtain call IDs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        callIds: {
+          type: "array",
+          items: { type: "string" },
+          description: "Array of Gong call IDs to fetch transcripts for (up to 20 per request).",
+          minItems: 1,
+          maxItems: 20,
+        },
+      },
+      required: ["callIds"],
+    },
+  },
   {
     name: "gong_list_contacts",
     description:
@@ -169,6 +217,64 @@ const TOOLS = [
 
 // ── Tool handlers ──────────────────────────────────────────────────────────────
 
+async function handleGongListCalls({
+  fromDateTime,
+  toDateTime,
+  attendeeEmailAddresses,
+  cursor,
+} = {}) {
+  const body = {};
+  if (fromDateTime || toDateTime) {
+    body.filter = {};
+    if (fromDateTime) body.filter.fromDateTime = fromDateTime;
+    if (toDateTime) body.filter.toDateTime = toDateTime;
+    if (Array.isArray(attendeeEmailAddresses) && attendeeEmailAddresses.length > 0) {
+      body.filter.attendeeEmailAddresses = attendeeEmailAddresses;
+    }
+  } else if (Array.isArray(attendeeEmailAddresses) && attendeeEmailAddresses.length > 0) {
+    body.filter = { attendeeEmailAddresses };
+  }
+  if (cursor) body.cursor = cursor;
+
+  const data = await gongFetch("/v2/calls", { method: "POST", body });
+  const calls = data.calls ?? [];
+  return {
+    count: calls.length,
+    calls: calls.map(({ id, title, started, duration, primaryUserId, meetingUrl }) => ({
+      id,
+      title,
+      started,
+      duration,
+      primaryUserId,
+      meetingUrl,
+    })),
+    ...(data.cursor ? { nextPageCursor: data.cursor } : {}),
+  };
+}
+
+async function handleGongGetTranscripts({ callIds }) {
+  if (!Array.isArray(callIds) || callIds.length === 0) {
+    throw new Error("'callIds' must be a non-empty array.");
+  }
+  if (callIds.length > 20) {
+    throw new Error("'callIds' cannot exceed 20 IDs per request.");
+  }
+  for (const id of callIds) {
+    if (!id || typeof id !== "string") {
+      throw new Error("Each call ID must be a non-empty string.");
+    }
+  }
+
+  const data = await gongFetch("/v2/calls/transcript", {
+    method: "POST",
+    body: { filter: { callIds } },
+  });
+  return {
+    count: (data.callTranscripts ?? []).length,
+    callTranscripts: data.callTranscripts ?? [],
+  };
+}
+
 async function handleGongListContacts({ emailAddresses, cursor } = {}) {
   const qs = new URLSearchParams();
   if (Array.isArray(emailAddresses) && emailAddresses.length > 0) {
@@ -267,6 +373,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   let result;
   switch (name) {
+    case "gong_list_calls":
+      result = await handleGongListCalls(args ?? {});
+      break;
+    case "gong_get_transcripts":
+      result = await handleGongGetTranscripts(args ?? {});
+      break;
     case "gong_list_contacts":
       result = await handleGongListContacts(args ?? {});
       break;
