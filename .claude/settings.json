@@ -36,6 +36,11 @@
         "SALESFORCE_INSTANCE_URL": "",
         "SALESFORCE_ACCESS_TOKEN": ""
       }
+    },
+    "organize-downloads": {
+      "command": "node",
+      "args": ["src/organize-downloads.js"],
+      "description": "Downloads folder organizer — list, categorize, and sort files into typed subdirectories"
     }
   },
   "enabledPlugins": {
