@@ -7,6 +7,7 @@
     }
   },
   "enabledPlugins": {
-    "supabase@claude-plugins-official": true
+    "supabase@claude-plugins-official": true,
+    "atomic-agents@claude-plugins-official": true
   }
 }
